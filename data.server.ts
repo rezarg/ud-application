@@ -11,6 +11,7 @@ const events = game.GetService("ReplicatedStorage").WaitForChild("Events") as Fo
 const connectMining = events.WaitForChild("ConnectMining") as RemoteEvent;
 
 game.GetService("Players").PlayerAdded.Connect((player: Player) => {
+	// set up player attributes when they join (datastores aren't implemented yet, but would be pretty easy to add with my system)
 	player.SetAttribute("Money", 50);
 	player.SetAttribute("Inventory", https.JSONEncode([]));
 	player.SetAttribute("Pickaxes", https.JSONEncode([]));
@@ -18,6 +19,7 @@ game.GetService("Players").PlayerAdded.Connect((player: Player) => {
 	player.SetAttribute("Dynamite", https.JSONEncode([]));
 	player.SetAttribute("Quests", https.JSONEncode([undefined, undefined, undefined]));
 
+	// I don't know why I put this here. I don't think it actually does anything, since you don't spawn with any tools, but I'm worried that removing it will break everything
 	const characterChildren = player.Character?.GetChildren();
 	for (const child of characterChildren || []) {
 		if (child.IsA("Tool") && child.GetAttribute("Pickaxe")) {
@@ -26,6 +28,8 @@ game.GetService("Players").PlayerAdded.Connect((player: Player) => {
 	}
 
 	player.AttributeChanged.Connect((attribute: string) => {
+		// Okay, so when the Pickaxes attribute is updated, we delete all pickaxes in their Backpack and character, and add all the updated ones.
+		// Probably not the best way to do it, but it works.
 		if (attribute === "Pickaxes") {
 			player
 				.FindFirstChild("Backpack")
@@ -52,6 +56,7 @@ game.GetService("Players").PlayerAdded.Connect((player: Player) => {
 
 				connectMining.FireClient(player, newPickaxe);
 			});
+		// Same update system but for the Glowstick item
 		} else if (attribute === "Glowsticks") {
 			player
 				.FindFirstChild("Backpack")
@@ -74,6 +79,7 @@ game.GetService("Players").PlayerAdded.Connect((player: Player) => {
 
 				glowstickHandler(newGlowstick);
 			});
+		// And again but for Dynamite. (Y'know, this could probably be made into some sort of simplified function)
 		} else if (attribute === "Dynamite") {
 			player
 				.FindFirstChild("Backpack")
