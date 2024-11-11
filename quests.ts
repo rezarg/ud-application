@@ -1,5 +1,6 @@
 const https = game.GetService("HttpService") as HttpService;
 
+// Quest constructor
 class Quest {
 	constructor(
 		public displayName: string,
@@ -12,16 +13,18 @@ class Quest {
 	) {}
 }
 
+// List of all quests for easy access. I would make it a dictionary, but it works fine how it is, and keys aren't really needed for how I use it.
 const Quests: Quest[] = [];
 
+// Add a new quest to the Quests list
 Quests.push(
 	new Quest(
-		"Collect Stone Easy",
-		"I'd pay a hefty price for 25 Stone right about now...",
-		"Collect 0/25 Stone",
-		"Reward: $50",
-		() => {},
-		(player, questEntry) => {
+		"Collect Stone Easy", // I called this a displayName but it doesn't actually display it anywhere, it's more of an identifier.
+		"I'd pay a hefty price for 25 Stone right about now...", // This is the dialogue the Quest NPC says to you when giving the quest.
+		"Collect 0/25 Stone", // This is the quest progress text
+		"Reward: $50", // Quest reward text
+		() => {}, // setup function (This quest doesn't require any setup to work, unlike the Playtime quest)
+		(player, questEntry) => { // This function checks the progress of the quest and verifies if the user can claim the reward.
 			const inventory = https.JSONDecode(player.GetAttribute("Inventory") as string) as { [key: string]: number };
 			const stoneCount = inventory["Stone"] !== undefined ? inventory["Stone"] : 0;
 			const complete = stoneCount >= 25;
@@ -39,7 +42,7 @@ Quests.push(
 
 			return complete;
 		},
-		(player) => {
+		(player) => { // This function adds the reward to the player's data when claimed.
 			const money = player.GetAttribute("Money") as number;
 			player.SetAttribute("Money", money + 50);
 			const inventory = https.JSONDecode(player.GetAttribute("Inventory") as string) as { [key: string]: number };
@@ -89,7 +92,7 @@ Quests.push(
 		"I get a bit lonely down in the mines, could you stick around for a bit?",
 		"Play for 5:00",
 		"Reward: $100",
-		(player) => {
+		(player) => { // Here, the setup function is actually used, and it sets an attribute under the player for when the quest started.
 			if (player.GetAttribute("PlaytimeEasyStart") === undefined) {
 				player.SetAttribute("PlaytimeEasyStart", os.time());
 			}
@@ -99,10 +102,11 @@ Quests.push(
 
 			const timeLeft = 300 - (os.time() - startedAt);
 
+			// I found these conversion methods on some stackoverflow post :)
 			const minutesRemaining = math.floor(timeLeft / 60);
 			const secondsRemainingRaw = timeLeft % 60;
 			const secondsRemaining =
-				tostring(secondsRemainingRaw).size() === 1 ? `0${secondsRemainingRaw}` : `${secondsRemainingRaw}`;
+				tostring(secondsRemainingRaw).size() === 1 ? `0${secondsRemainingRaw}` : `${secondsRemainingRaw}`; // I figured this one out myself though 🤓
 
 			const complete = minutesRemaining <= 0;
 			if (questEntry !== undefined) {
@@ -193,4 +197,4 @@ Quests.push(
 	),
 );
 
-export { Quests, Quest };
+export { Quests, Quest }; // Export Quests list and Quest class for types.
